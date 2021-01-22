@@ -60,3 +60,7 @@ class ParserTest(TestCase):
         source: str = 'var x 5;'
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
+        self.assertEqual(len(parser.errors), 1)
