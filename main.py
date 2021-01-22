@@ -1,4 +1,4 @@
-from src.repl import start_repl
+from src.lexer.repl import start_repl
 
 
 def main() -> None:

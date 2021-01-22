@@ -57,4 +57,6 @@ class ParserTest(TestCase):
         self.assertEqual(names, expected_names)
 
     def test_parse_errors(self) -> None:
-        pass
+        source: str = 'var x 5;'
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
