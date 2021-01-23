@@ -1,6 +1,16 @@
+from enum import IntEnum
 from typing import Optional, List, Callable, Dict
 
-from .ast import Program, Statement, VarStatement, Identifier, ReturnStatement, Expression
+from .ast import (
+    Program,
+    Statement,
+    VarStatement,
+    Identifier,
+    ReturnStatement,
+    Expression,
+    ExpressionStatement,
+    Integer,
+)
 from ..lexer.lexer import Lexer
 from ..lexer.token import Token, TokenType
 
@@ -8,6 +18,16 @@ PrefixParseFn = Callable[[], Optional[Expression]]
 InfixParseFn = Callable[[Expression], Optional[Expression]]
 PrefixParseFns = Dict[TokenType, PrefixParseFn]
 InfixParseFns = Dict[TokenType, InfixParseFn]
+
+
+class Precedence(IntEnum):
+    LOWEST = 1
+    EQUALS = 2
+    LESS_GREATER = 3
+    SUM = 4
+    PRODUCT = 5
+    PREFIX = 6
+    CALL = 7
 
 
 class Parser:
@@ -57,16 +77,49 @@ class Parser:
                 f'but got {self._peek_token.token_type}'
         self._errors.append(error)
 
+    def _parse_expression(self, precedence: Precedence) -> Optional[Expression]:
+        assert self._current_token
+        try:
+            prefix_parse_fn = self._prefix_parse_fns[self._current_token.token_type]
+        except KeyError:
+            return None
+
+        left_expression = prefix_parse_fn()
+        return left_expression
+
+    def _parse_expression_statement(self) -> Optional[ExpressionStatement]:
+        assert self._current_token
+        expression_statement = ExpressionStatement(token=self._current_token)
+
+        expression_statement.expression = self._parse_expression(Precedence.LOWEST)
+
+        assert self._peek_token
+        if self._peek_token.token_type == TokenType.SEMICOLON:
+            self._advance_tokens()
+        return expression_statement
+
+    def _parse_identifier(self) -> Identifier:
+        assert self._current_token
+        return Identifier(token=self._current_token, value=self._current_token.literal)
+
+    def _parse_integer(self) -> Optional[Integer]:
+        assert self._current_token
+        integer = Integer(token=self._current_token)
+
+        try:
+            integer.value = int(self._current_token.literal)
+        except ValueError:
+            self._errors.append(f'Error parsing {self._current_token} as integer')
+            return None
+        return integer
+
     def _parse_var_statement(self) -> Optional[VarStatement]:
         assert self._current_token
         var_statement: VarStatement = VarStatement(token=self._current_token)
 
         if not self._expected_token(TokenType.IDENT):
             return None
-        var_statement.name = Identifier(
-            token=self._current_token,
-            value=self._current_token.literal
-        )
+        var_statement.name = self._parse_identifier()
 
         if not self._expected_token(TokenType.ASSIGN):
             return None
@@ -93,10 +146,13 @@ class Parser:
             return self._parse_var_statement()
         elif self._current_token.token_type == TokenType.RETURN:
             return self._parse_return_statement()
-        return None
+        return self._parse_expression_statement()
 
     def _register_infix_fns(self) -> InfixParseFns:
         return {}
 
     def _register_prefix_fns(self) -> PrefixParseFns:
-        return {}
+        return {
+            TokenType.IDENT: self._parse_identifier,
+            TokenType.INT: self._parse_integer,
+        }
