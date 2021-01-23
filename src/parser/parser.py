@@ -2,14 +2,15 @@ from enum import IntEnum
 from typing import Optional, List, Callable, Dict
 
 from .ast import (
-    Program,
-    Statement,
-    VarStatement,
-    Identifier,
-    ReturnStatement,
     Expression,
     ExpressionStatement,
+    Identifier,
     Integer,
+    Prefix,
+    Program,
+    ReturnStatement,
+    Statement,
+    VarStatement,
 )
 from ..lexer.lexer import Lexer
 from ..lexer.token import Token, TokenType
@@ -82,6 +83,7 @@ class Parser:
         try:
             prefix_parse_fn = self._prefix_parse_fns[self._current_token.token_type]
         except KeyError:
+            self.errors.append(f'Could not find any function for parsing {self._current_token.literal}')
             return None
 
         left_expression = prefix_parse_fn()
@@ -130,6 +132,14 @@ class Parser:
 
         return var_statement
 
+    def _parse_prefix_expression(self) -> Expression:
+        assert self._current_token
+        prefix_expression = Prefix(token=self._current_token,
+                                   operator=self._current_token.literal)
+        self._advance_tokens()
+        prefix_expression.right = self._parse_expression(Precedence.PREFIX)
+        return prefix_expression
+
     def _parse_return_statement(self) -> Optional[ReturnStatement]:
         assert self._current_token
         return_statement = ReturnStatement(token=self._current_token)
@@ -155,4 +165,6 @@ class Parser:
         return {
             TokenType.IDENT: self._parse_identifier,
             TokenType.INT: self._parse_integer,
+            TokenType.MINUS: self._parse_prefix_expression,
+            TokenType.NEGATION: self._parse_prefix_expression,
         }
