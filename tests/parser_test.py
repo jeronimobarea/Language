@@ -2,7 +2,7 @@ from typing import List, cast
 from unittest import TestCase
 
 from src.lexer.lexer import Lexer
-from src.parser.ast import Program, VarStatement
+from src.parser.ast import Program, VarStatement, ReturnStatement
 from src.parser.parser import Parser
 
 
@@ -61,6 +61,23 @@ class ParserTest(TestCase):
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
 
-        program: Program = parser.parse_program()
+        parser.parse_program()
 
         self.assertEqual(len(parser.errors), 1)
+
+    def test_return_statement(self) -> None:
+        source: str = '''
+        return 5;
+        return foo;
+        '''
+
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
+        self.assertEqual(len(program.statements), 2)
+
+        for statement in program.statements:
+            self.assertEqual(statement.token_literal(), 'return')
+            self.assertIsInstance(statement, ReturnStatement)

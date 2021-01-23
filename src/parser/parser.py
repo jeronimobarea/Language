@@ -1,8 +1,13 @@
-from typing import Optional, List
+from typing import Optional, List, Callable, Dict
 
-from .ast import Program, Statement, VarStatement, Identifier
+from .ast import Program, Statement, VarStatement, Identifier, ReturnStatement, Expression
 from ..lexer.lexer import Lexer
 from ..lexer.token import Token, TokenType
+
+PrefixParseFn = Callable[[], Optional[Expression]]
+InfixParseFn = Callable[[Expression], Optional[Expression]]
+PrefixParseFns = Dict[TokenType, PrefixParseFn]
+InfixParseFns = Dict[TokenType, InfixParseFn]
 
 
 class Parser:
@@ -12,6 +17,9 @@ class Parser:
         self._current_token: Optional[Token] = None
         self._peek_token: Optional[Token] = None
         self._errors: List[str] = []
+
+        self._prefix_parse_fns: PrefixParseFns = self._register_prefix_fns()
+        self._infix_parse_fns: InfixParseFns = self._register_infix_fns()
 
         self._advance_tokens()
         self._advance_tokens()
@@ -45,7 +53,9 @@ class Parser:
 
     def _expected_token_error(self, token_type: TokenType) -> None:
         assert self._peek_token
-        error = f''
+        error = f'The expected token was {token_type} ' + \
+                f'but got {self._peek_token.token_type}'
+        self._errors.append(error)
 
     def _parse_var_statement(self) -> Optional[VarStatement]:
         assert self._current_token
@@ -67,8 +77,26 @@ class Parser:
 
         return var_statement
 
+    def _parse_return_statement(self) -> Optional[ReturnStatement]:
+        assert self._current_token
+        return_statement = ReturnStatement(token=self._current_token)
+        self._advance_tokens()
+
+        # TODO finish when learned how to parse expressions
+        while self._current_token.token_type != TokenType.SEMICOLON:
+            self._advance_tokens()
+        return return_statement
+
     def _parse_statement(self) -> Optional[Statement]:
         assert self._current_token
         if self._current_token.token_type == TokenType.VAR:
             return self._parse_var_statement()
+        elif self._current_token.token_type == TokenType.RETURN:
+            return self._parse_return_statement()
         return None
+
+    def _register_infix_fns(self) -> InfixParseFns:
+        return {}
+
+    def _register_prefix_fns(self) -> PrefixParseFns:
+        return {}
