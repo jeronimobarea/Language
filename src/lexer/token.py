@@ -9,7 +9,8 @@ from typing import NamedTuple, Dict
 @unique
 class TokenType(Enum):
     """
-    Token definitions of the language.
+    The TokenType class represents definitions of the language.
+    We will reference the values when we analyze the tokens of the program.
     """
     ASSIGN = auto()
     COMMA = auto()
@@ -41,6 +42,16 @@ class TokenType(Enum):
 
 
 class Token(NamedTuple):
+    """
+    The Token class represents a TokenType of the program
+    param: toke_type -> The type of the token int, bool...
+    param: literal -> The value of the token
+
+    example: var x;
+    Where var is a Token with token_type VAR and the literal 'var',
+    x is a Token with token_type IDENT and literal 'x' and
+    ; is a Token with token_type SEMICOLON and literal ';'
+    """
     token_type: TokenType
     literal: str
 

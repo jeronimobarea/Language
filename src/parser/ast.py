@@ -5,6 +5,13 @@ from ..lexer.token import Token
 
 
 class ASTNode(ABC):
+    """
+    This is the definition of the ASTNode.
+    This abstract class will inherit all the logic needed for the Statement and Expressions.
+
+    function: toke_literal -> The value of the token
+    function: __str__ -> The representation of the class Instance
+    """
 
     @abstractmethod
     def token_literal(self) -> str:
@@ -16,6 +23,9 @@ class ASTNode(ABC):
 
 
 class Statement(ASTNode):
+    """
+    This class will be used for all the language Statements var, return...
+    """
 
     def __init__(self, token: Token) -> None:
         self.token = token
@@ -28,6 +38,9 @@ class Statement(ASTNode):
 
 
 class Expression(ASTNode):
+    """
+    This class will be used for all the language Expressions integer, bool...
+    """
 
     def __init__(self, token: Token) -> None:
         self.token = token
@@ -40,6 +53,11 @@ class Expression(ASTNode):
 
 
 class Program(ASTNode):
+    """
+    This class will be the representation of the source code.
+
+    param: statements -> All the detected commands of the program.
+    """
 
     def __init__(self, statements: List[Statement]) -> None:
         self.statements = statements
