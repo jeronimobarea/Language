@@ -5,6 +5,13 @@ from ..lexer.token import Token
 
 
 class ASTNode(ABC):
+    """
+    This is the definition of the ASTNode.
+    This abstract class will inherit all the logic needed for the Statement and Expressions.
+
+    function: toke_literal -> The value of the token
+    function: __str__ -> The representation of the class Instance
+    """
 
     @abstractmethod
     def token_literal(self) -> str:
@@ -16,6 +23,9 @@ class ASTNode(ABC):
 
 
 class Statement(ASTNode):
+    """
+    This class will be used for all the language Statements var, return...
+    """
 
     def __init__(self, token: Token) -> None:
         self.token = token
@@ -28,6 +38,9 @@ class Statement(ASTNode):
 
 
 class Expression(ASTNode):
+    """
+    This class will be used for all the language Expressions integer, bool...
+    """
 
     def __init__(self, token: Token) -> None:
         self.token = token
@@ -40,16 +53,27 @@ class Expression(ASTNode):
 
 
 class Program(ASTNode):
+    """
+    This class will be the representation of the source code.
+
+    param: statements -> All the detected commands of the program.
+    """
 
     def __init__(self, statements: List[Statement]) -> None:
         self.statements = statements
 
     def token_literal(self) -> str:
+        """
+        returns the firsts literal of the list
+        """
         if self.statements:
             return self.statements[0].token_literal()
         return ''
 
     def __str__(self) -> str:
+        """
+        returns all the statements parsed as string
+        """
         out: List[str] = []
         for statement in self.statements:
             out.append(str(statement))
@@ -57,6 +81,9 @@ class Program(ASTNode):
 
 
 class Identifier(Expression):
+    """
+    Expression for representing the Identifier 'your_var_name'
+    """
 
     def __init__(self, token: Token, value: str) -> None:
         super().__init__(token)
@@ -67,6 +94,18 @@ class Identifier(Expression):
 
 
 class VarStatement(Statement):
+    """
+    Statement for representing the Var 'var'
+
+    param: token -> The token of the Statement
+    param: name -> the name of the Identifier
+    param: value -> value of the identifier
+
+    example: var x = 10;
+    var -> token
+    x -> name
+    10 -> value
+    """
 
     def __init__(self,
                  token: Token,
@@ -81,6 +120,16 @@ class VarStatement(Statement):
 
 
 class ReturnStatement(Statement):
+    """
+    Statement for representing the 'return'
+
+    param: token -> The token of the statement.
+    param: return_value -> The value that we are returning
+
+    example: func() { return 10; }
+    return -> token
+    10 -> return_value
+    """
 
     def __init__(self,
                  token: Token,
@@ -93,6 +142,15 @@ class ReturnStatement(Statement):
 
 
 class ExpressionStatement(Statement):
+    """
+    Statement for representing the Expressions
+
+    param: token -> Expression token
+    param: expression -> The value of the expression
+
+    exampleL: 5;
+    5 -> ExpressionStatement.expression
+    """
 
     def __init__(self,
                  token: Token,
@@ -105,6 +163,15 @@ class ExpressionStatement(Statement):
 
 
 class Integer(Expression):
+    """
+    Expresion for representing the integer types.
+
+    param: token -> the token of the integer type
+    param: value -> the value of the token declaration
+
+    example: var x = 5;
+    5 -> Token.TokenType == INTEGER, value = 5
+    """
 
     def __init__(self,
                  token: Token,
