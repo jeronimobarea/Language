@@ -35,7 +35,7 @@ mypy . && nosetests
 var x = 5;
 var y = 10;
 
-var res = function (x, y) {
+var res = func(x, y) {
     return x + y
 }
 ```
