@@ -8,6 +8,10 @@ EOF_TOKEN: Token = Token(TokenType.EOF, '')
 
 
 def start_repl() -> None:
+    """
+    Little version of an interactive REPL.
+    Right know it only processes the characters and shows the TokenType of the written syntax.
+    """
     while (source := input('>> ')) != 'exit()':
         lexer: Lexer = Lexer(source)
 
